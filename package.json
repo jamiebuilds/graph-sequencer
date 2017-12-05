@@ -1,0 +1,35 @@
+{
+  "name": "graph-sequencer",
+  "version": "0.0.0",
+  "description": "Sort items in a graph using a topological sort while resolving cycles with priority groups",
+  "main": "index.js",
+  "author": "James Kyle <me@thejameskyle.com>",
+  "repository": "thejameskyle/graph-sequencer",
+  "license": "MIT",
+  "keywords": [
+    "graph",
+    "adjacency",
+    "list",
+    "tasks",
+    "priority",
+    "priorities",
+    "sort",
+    "dependencies",
+    "topological",
+    "topo",
+    "sequencer"
+  ],
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "ava test.js"
+  },
+  "dependencies": {
+    "array-flatten": "^2.1.1"
+  },
+  "devDependencies": {
+    "ava": "^0.24.0",
+    "flow-bin": "^0.60.1"
+  }
+}
