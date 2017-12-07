@@ -3,39 +3,44 @@
 
 const assert = require('assert');
 const arrayFlatten = require('array-flatten');
+const arrayIncludes = require('array-includes');
 
 /*::
-type Graph = { [item: string]: Array<string> };
-type Groups = Array<Array<string>>;
+type Graph<T> = Map<T, Array<T>>;
+type Groups<T> = Array<Array<T>>;
 
-type Options = {
-  graph: Graph,
-  groups: Groups,
+type Options<T> = {
+  graph: Graph<T>,
+  groups: Groups<T>,
 };
 
-type Result = {
+type Result<T> = {
   safe: boolean,
-  chunks: Groups,
-  cycles: Groups,
+  chunks: Groups<T>,
+  cycles: Groups<T>,
 };
 */
 
 // A function for finding cycles in a remaining graph.
-function getCycles(currDepsMap, visited) {
+function getCycles/*::<T>*/(currDepsMap /*: Graph<T> */, visited /*: Graph<T> */) /*: Groups<T> */ {
   // Get a list of all the remaining items in the dep map.
-  let items = Object.keys(currDepsMap);
+  let items = Array.from(currDepsMap.keys());
   // Create an array for cycles to push to.
-  let cycles = [];
+  let cycles /*: Groups<T> */ = [];
 
   // Create a function to call recursively in a depth-first search.
   function visit(item, cycle) {
+    let visitedDeps = visited.get(item);
+
     // Create an object for the item to mark visited deps.
-    if (!visited[item]) {
-      visited[item] = {};
+    if (!visitedDeps) {
+      visitedDeps = [];
+      visited.set(item, visitedDeps);
     }
 
     // Get the current deps for the item.
-    let deps = currDepsMap[item];
+    let deps = currDepsMap.get(item);
+    if (typeof deps === 'undefined') return;
 
     // For each dep,
     for (let dep of deps) {
@@ -47,8 +52,8 @@ function getCycles(currDepsMap, visited) {
 
       // If an item hasn't been visited, visit it (and pass an updated
       // potential cycle)
-      if (!visited[item][dep]) {
-        visited[item][dep] = true;
+      if (!arrayIncludes(visitedDeps, dep)) {
+        visitedDeps.push(dep);
         visit(dep, cycle.concat(dep));
       }
     }
@@ -63,28 +68,29 @@ function getCycles(currDepsMap, visited) {
   return cycles;
 }
 
-function graphSequencer({ graph, groups } /*: Options */) /*: Result */ {
-  let graphItems = Object.keys(graph);
-  let groupItems = arrayFlatten(groups);
+function graphSequencer/*::<T>*/(opts /*: Options<T> */) /*: Result<T> */ {
+  let graph = opts.graph;
+  let groups = opts.groups;
+  let graphItems = Array.from(graph.keys());
 
   // Ensure that we have the same set of items in both graph and groups.
   assert.deepStrictEqual(
     graphItems.sort(),
-    groupItems.sort(),
+    arrayFlatten(groups).sort(),
     'items in graph must be the same as items in groups'
   );
 
   // We'll push to these with the results.
-  let chunks = [];
-  let cycles = [];
+  let chunks /*: Groups<T> */ = [];
+  let cycles /*: Groups<T> */ = [];
   let safe = true;
 
   // We'll keep replacing this queue as we unload items into chunks.
-  let queue = groupItems.slice();
-  // A map of items already put into chunks.
-  let chunked = {};
+  let queue = graphItems;
+  // A set of items already put into chunks.
+  let chunked /*: Set<T> */ = new Set();
   // A cache of visited connection in the graph when finding cycles.
-  let visited = {};
+  let visited /*: Graph<T> */ = new Map();
 
   // Keep running this loop while we have items left to unload into chunks.
   while (queue.length) {
@@ -94,31 +100,32 @@ function graphSequencer({ graph, groups } /*: Options */) /*: Result */ {
     let chunk = [];
     // A map of remaining deps for each of the remaining items in the current
     // iteration.
-    let currDepsMap = {};
+    let currDepsMap /*: Graph<T> */ = new Map();
 
     for (let i = 0; i < queue.length; i++) {
       // Get the current `item` in the `queue`.
       let item = queue[i];
       // Get all the deps of the `item`.
-      let deps = graph[item];
+      let deps = graph.get(item);
+      if (typeof deps === 'undefined') continue;
 
       // Find the index of the group that the `item` belongs to.
-      let itemGroup = groups.findIndex(group => group.includes(item));
+      let itemGroup = groups.findIndex(group => arrayIncludes(group, item));
 
       // Filter down a set of deps which need to be run first.
       let currDeps = deps.filter(dep => {
         // Find the index of the group that the `dep` belongs to.
-        let depGroup = groups.findIndex(group => group.includes(dep));
+        let depGroup = groups.findIndex(group => arrayIncludes(group, dep));
 
         if (depGroup > itemGroup) {
           return false;
         } else {
-          return !chunked[dep];
+          return !chunked.has(dep);
         }
       });
 
       // Store the remaining deps for this `item` for later.
-      currDepsMap[item] = currDeps;
+      currDepsMap.set(item, currDeps);
 
       // If there are deps remaining,
       if (currDeps.length) {
@@ -140,7 +147,9 @@ function graphSequencer({ graph, groups } /*: Options */) /*: Result */ {
       // We'll sort the remaining items in the queue by the number of deps they
       // have remaining.
       let sorted = queue.sort((a, b) => {
-        return currDepsMap[a].length - currDepsMap[b].length;
+        let aDeps = currDepsMap.get(a) || [];
+        let bDeps = currDepsMap.get(b) || [];
+        return aDeps.length - bDeps.length;
       });
 
       // We'll push the item with the fewest deps remaining to the chunk.
@@ -157,7 +166,7 @@ function graphSequencer({ graph, groups } /*: Options */) /*: Result */ {
 
     // Mark all of the unloaded items in the chunk as being chunked already.
     for (let item of chunk) {
-      chunked[item] = true;
+      chunked.add(item);
     }
 
     // Add the current cycle's chunk to the resulting chunks array, ensuring

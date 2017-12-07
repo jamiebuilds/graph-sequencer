@@ -26,7 +26,8 @@
     "test": "ava test.js"
   },
   "dependencies": {
-    "array-flatten": "^2.1.1"
+    "array-flatten": "^2.1.1",
+    "array-includes": "^3.0.3"
   },
   "devDependencies": {
     "ava": "^0.24.0",

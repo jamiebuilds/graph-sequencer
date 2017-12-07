@@ -6,12 +6,12 @@ const graphSequencer = require('./');
 test('graph with no dependencies', t => {
   t.deepEqual(
     graphSequencer({
-      graph: {
-        a: [],
-        b: [],
-        c: [],
-        d: [],
-      },
+      graph: new Map([
+        ['a', []],
+        ['b', []],
+        ['c', []],
+        ['d', []],
+      ]),
       groups: [['a', 'b', 'c', 'd']],
     }),
     {
@@ -25,12 +25,12 @@ test('graph with no dependencies', t => {
 test('graph with multiple dependencies on one item', t => {
   t.deepEqual(
     graphSequencer({
-      graph: {
-        a: ['d'],
-        b: ['d'],
-        c: [],
-        d: [],
-      },
+      graph: new Map([
+        ['a', ['d']],
+        ['b', ['d']],
+        ['c', []],
+        ['d', []],
+      ]),
       groups: [['a', 'b', 'c', 'd']],
     }),
     {
@@ -44,12 +44,12 @@ test('graph with multiple dependencies on one item', t => {
 test('graph with resolved cycle', t => {
   t.deepEqual(
     graphSequencer({
-      graph: {
-        a: ['b'],
-        b: ['c'],
-        c: ['d'],
-        d: ['a'],
-      },
+      graph: new Map([
+        ['a', ['b']],
+        ['b', ['c']],
+        ['c', ['d']],
+        ['d', ['a']],
+      ]),
       groups: [['a'], ['b', 'c', 'd']],
     }),
     {
@@ -63,12 +63,12 @@ test('graph with resolved cycle', t => {
 test('graph with resolved cycle with multiple unblocked deps', t => {
   t.deepEqual(
     graphSequencer({
-      graph: {
-        a: ['d'],
-        b: ['d'],
-        c: ['d'],
-        d: ['a'],
-      },
+      graph: new Map([
+        ['a', ['d']],
+        ['b', ['d']],
+        ['c', ['d']],
+        ['d', ['a']],
+      ]),
       groups: [['d'], ['a', 'b', 'c']],
     }),
     {
@@ -82,12 +82,12 @@ test('graph with resolved cycle with multiple unblocked deps', t => {
 test('graph with unresolved cycle', t => {
   t.deepEqual(
     graphSequencer({
-      graph: {
-        a: ['b'],
-        b: ['c'],
-        c: ['d'],
-        d: ['a'],
-      },
+      graph: new Map([
+        ['a', ['b']],
+        ['b', ['c']],
+        ['c', ['d']],
+        ['d', ['a']],
+      ]),
       groups: [['a', 'b', 'c', 'd']],
     }),
     {
@@ -101,12 +101,12 @@ test('graph with unresolved cycle', t => {
 test('graph with multiple cycles', t => {
   t.deepEqual(
     graphSequencer({
-      graph: {
-        a: ['b'],
-        b: ['a'],
-        c: ['d'],
-        d: ['c'],
-      },
+      graph: new Map([
+        ['a', ['b']],
+        ['b', ['a']],
+        ['c', ['d']],
+        ['d', ['c']],
+      ]),
       groups: [['a', 'b', 'c', 'd']],
     }),
     {
@@ -120,12 +120,12 @@ test('graph with multiple cycles', t => {
 test('graph with multiple cycles where one is resolved', t => {
   t.deepEqual(
     graphSequencer({
-      graph: {
-        a: ['b'],
-        b: ['a'],
-        c: ['d'],
-        d: ['c'],
-      },
+      graph: new Map([
+        ['a', ['b']],
+        ['b', ['a']],
+        ['c', ['d']],
+        ['d', ['c']],
+      ]),
       groups: [['a', 'b', 'c'], ['d']],
     }),
     {
@@ -139,12 +139,12 @@ test('graph with multiple cycles where one is resolved', t => {
 test('graph with multiple resolves cycles', t => {
   t.deepEqual(
     graphSequencer({
-      graph: {
-        a: ['b'],
-        b: ['a'],
-        c: ['d'],
-        d: ['c'],
-      },
+      graph: new Map([
+        ['a', ['b']],
+        ['b', ['a']],
+        ['c', ['d']],
+        ['d', ['c']],
+      ]),
       groups: [['b', 'c'], ['a', 'd']],
     }),
     {

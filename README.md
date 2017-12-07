@@ -6,12 +6,12 @@
 Say you have some sort of graph of dependencies: (using an adjacency list)
 
 ```js
-let graph = {
-  "task-a": ["task-d"], // task-a depends on task-d
-  "task-b": ["task-d", "task-a"],
-  "task-c": ["task-d"],
-  "task-d": ["task-a"],
-};
+let graph = new Map([
+  ["task-a", ["task-d"]], // task-a depends on task-d
+  ["task-b", ["task-d", "task-a"]],
+  ["task-c", ["task-d"]],
+  ["task-d", ["task-a"]],
+]);
 ```
 
 You could run a topological sort on these items, but you'd still end up with
@@ -71,12 +71,12 @@ All together that looks like this:
 const graphSequencer = require('graph-sequencer');
 
 graphSequencer({
-  graph: {
-    "task-a": ["task-d"], // task-a depends on task-d
-    "task-b": ["task-d", "task-a"],
-    "task-c": ["task-d"],
-    "task-d": ["task-a"],
-  },
+  graph: new Map([
+    ["task-a", ["task-d"]], // task-a depends on task-d
+    ["task-b", ["task-d", "task-a"]],
+    ["task-c", ["task-d"]],
+    ["task-d", ["task-a"]],
+  ]);
   groups: [
     ["task-d"], // higher priority
     ["task-a", "task-b", "task-c"], // lower priority
