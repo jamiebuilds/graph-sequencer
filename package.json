@@ -1,6 +1,6 @@
 {
   "name": "graph-sequencer",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Sort items in a graph using a topological sort while resolving cycles with priority groups",
   "main": "index.js",
   "author": "James Kyle <me@thejameskyle.com>",
